@@ -358,15 +358,15 @@ function renderPreview() {
 
     // If starting a new row, check if it fits on the current page
     if (colIdx === 0) {
-      const neededH = cH + (currentY > 0 ? CELL_GAP_V : 0);
-      if (currentY > 0 && currentY + (currentY > 0 ? CELL_GAP_V : 0) + cH > CONTENT_H) {
+      const gap = currentY > 0 ? CELL_GAP_V : 0;
+      if (currentY > 0 && currentY + gap + cH > CONTENT_H) {
         // New page
         pageNumber++;
         currentPageData = createPageDiv(pageNumber);
         previewPages.appendChild(currentPageData.wrapper);
         currentY = 0;
       }
-      rowY = currentY + (currentY > 0 ? CELL_GAP_V : 0);
+      rowY = currentY + (currentY > 0 ? CELL_GAP_V : 0); // recalculate after possible page break
       rowMaxH = 0;
     }
 

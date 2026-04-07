@@ -10,7 +10,9 @@
   "globals": {
     "Sortable": "readonly",
     "html2canvas": "readonly",
-    "JSZip": "readonly"
+    "JSZip": "readonly",
+    "lang": "readonly",
+    "t": "readonly"
   },
   "rules": {
     "no-unused-vars": "warn",
