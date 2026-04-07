@@ -1,4 +1,3 @@
-/* eslint-env browser */
 'use strict';
 
 // ---------------------------------------------------------------------------
@@ -273,7 +272,6 @@ function updateDropZoneVisibility() {
 // SortableJS reordering
 // ---------------------------------------------------------------------------
 
-// eslint-disable-next-line no-undef
 new Sortable(cardList, {
   animation: 150,
   ghostClass: 'sortable-ghost',
@@ -606,7 +604,6 @@ function capturePageCanvas(pageDiv) {
     pageDiv.style.transform = 'none';
     pageDiv.style.marginBottom = '0';
 
-    // eslint-disable-next-line no-undef
     html2canvas(pageDiv, {
       scale: 2,
       useCORS: true,
@@ -637,7 +634,6 @@ async function exportPdf() {
 
   try {
     const pageDivs = getPageDivs();
-    // eslint-disable-next-line no-undef
     const { jsPDF } = window.jspdf;
     const pdfOrientation = orientation === 'landscape' ? 'landscape' : 'portrait';
     const pdf = new jsPDF({ orientation: pdfOrientation, unit: 'px', format: [pageW(), pageH()] });
@@ -673,7 +669,6 @@ async function exportJpg() {
       const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
       downloadDataUrl(dataUrl, 'page-1.jpg');
     } else {
-      // eslint-disable-next-line no-undef
       const zip = new JSZip();
       for (let i = 0; i < pageDivs.length; i++) {
         const canvas = await capturePageCanvas(pageDivs[i]);
