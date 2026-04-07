@@ -19,8 +19,8 @@ Load images from your device, arrange them in a grid, optionally label each one,
 ### With Docker (recommended)
 
 ```bash
-docker pull ghcr.io/YOUR_USERNAME/simple-local-image-printer:latest
-docker run -p 8080:80 ghcr.io/YOUR_USERNAME/simple-local-image-printer:latest
+docker pull ghcr.io/mstroppel/simple-local-image-printer:latest
+docker run -p 8080:80 ghcr.io/mstroppel/simple-local-image-printer:latest
 ```
 
 Open `http://localhost:8080` in your browser.
@@ -120,8 +120,8 @@ COPY src/ /usr/share/nginx/html
 1. Checkout code
 2. Log in to GHCR (`ghcr.io`) using `GITHUB_TOKEN`
 3. Build and push image with tags:
-   - `ghcr.io/OWNER/simple-local-image-printer:latest` (on `main`)
-   - `ghcr.io/OWNER/simple-local-image-printer:vX.Y.Z` (on version tag)
+   - `ghcr.io/mstroppel/simple-local-image-printer:latest` (on `main`)
+   - `ghcr.io/mstroppel/simple-local-image-printer:vX.Y.Z` (on version tag)
 
 ---
 
