@@ -58,9 +58,9 @@ python3 -m http.server 8080 --directory src/
 
 ### UX principles
 
-**Language: German**
+**Language: German & English (auto-detected)**
 
-The entire UI is in German from the start. All labels, buttons, placeholders, tooltips, and error messages use German text. There is no language switcher — German is the only language.
+The UI supports German and English. The language is detected automatically from the browser's `navigator.language` setting on page load — no manual language switcher. German (`de`) is used when the browser language starts with `de`, otherwise English (`en`) is used as the fallback. All labels, buttons, placeholders, tooltips, and error messages are loaded from a translation object (`i18n`) in a dedicated `src/i18n.js` file.
 
 **Ease of use: sensible defaults**
 
@@ -82,33 +82,35 @@ If title and subtext are both empty for an image, the cell shows only the image 
 
 **Layout: side-by-side editor + preview**
 
-The UI uses a two-panel layout: editor on the left, live A4 preview on the right. On narrow viewports (< 900px), the panels stack vertically with a toggle to switch between editor ("Editor") and preview ("Vorschau").
+The UI uses a two-panel layout: editor on the left, live A4 preview on the right. On narrow viewports (< 900px), the panels stack vertically with a toggle to switch between editor and preview.
 
 ```
 ┌──────────────────────────────┬──────────────────────────────┐
-│  EDITOR                      │  VORSCHAU                    │
+│  EDITOR                      │  PREVIEW                     │
 │                              │                              │
-│  [+ Bilder hinzufügen]  [Alle│  ┌────────────────────────┐  │
-│   entfernen]                 │  │  Seite 1               │  │
-│  Spalten: [1] [2] [3]       │  │  ┌──────┐ ┌──────┐     │  │
-│                              │  │  │Titel │ │Titel │     │  │
-│  ┌────────────────────────┐  │  │  │ Bild │ │ Bild │     │  │
-│  │ Bild-1 Vorschau        │  │  │  │Unter │ │Unter │     │  │
-│  │ [Titel________]        │  │  │  └──────┘ └──────┘     │  │
-│  │ [Untertext____]        │  │  │  ┌──────┐ ┌──────┐     │  │
-│  │               [x]      │  │  │  │Titel │ │Titel │     │  │
-│  └────────────────────────┘  │  │  │ Bild │ │ Bild │     │  │
-│  ┌────────────────────────┐  │  │  │Unter │ │Unter │     │  │
-│  │ Bild-2 Vorschau        │  │  │  └──────┘ └──────┘     │  │
-│  │ [Titel________]        │  │  └────────────────────────┘  │
-│  │ [Untertext____]        │  │  ┌────────────────────────┐  │
-│  │               [x]      │  │  │  Seite 2               │  │
-│  └────────────────────────┘  │  │  ...                    │  │
-│  ...                         │  └────────────────────────┘  │
+│  [+ Add images]  [Clear all] │  ┌────────────────────────┐  │
+│  Columns: [1] [2] [3]       │  │  Page 1                │  │
+│                              │  │  ┌──────┐ ┌──────┐     │  │
+│  ┌────────────────────────┐  │  │  │Title │ │Title │     │  │
+│  │ img-1 thumbnail        │  │  │  │ img  │ │ img  │     │  │
+│  │ [Title________]        │  │  │  │Sub   │ │Sub   │     │  │
+│  │ [Subtext______]        │  │  │  └──────┘ └──────┘     │  │
+│  │               [x]      │  │  │  ┌──────┐ ┌──────┐     │  │
+│  └────────────────────────┘  │  │  │Title │ │Title │     │  │
+│  ┌────────────────────────┐  │  │  │ img  │ │ img  │     │  │
+│  │ img-2 thumbnail        │  │  │  │Sub   │ │Sub   │     │  │
+│  │ [Title________]        │  │  │  └──────┘ └──────┘     │  │
+│  │ [Subtext______]        │  │  └────────────────────────┘  │
+│  │               [x]      │  │  ┌────────────────────────┐  │
+│  └────────────────────────┘  │  │  Page 2                │  │
+│  ...                         │  │  ...                    │  │
+│                              │  └────────────────────────┘  │
 ├──────────────────────────────┴──────────────────────────────┤
-│  [PDF exportieren]  [JPG exportieren]                       │
+│  [Export PDF]  [Export JPG]                                  │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+_(Labels shown in English; actual text comes from `i18n.js` based on browser language.)_
 
 **Grid column control**
 
@@ -119,7 +121,7 @@ The user selects 1, 2, or 3 columns via toggle buttons in the toolbar. Default: 
 When images exceed the capacity of a single A4 page, a new page is created automatically. The preview panel renders each page as a separate A4 div stacked vertically. Capacity per page depends on column count, image aspect ratios, and whether titles/subtexts are present. The layout engine calculates remaining vertical space and breaks to a new page when the next image cell would overflow.
 
 - **PDF export**: each page becomes a separate PDF page via `jsPDF.addPage()`
-- **JPG export**: each page is rendered as a separate JPG; if there are multiple pages, all JPGs are bundled into a zip file using JSZip and downloaded as `bilder-YYYY-MM-DD.zip`. If there's only one page, the JPG is downloaded directly.
+- **JPG export**: each page is rendered as a separate JPG; if there are multiple pages, all JPGs are bundled into a zip file using JSZip and downloaded as `images-YYYY-MM-DD.zip`. If there's only one page, the JPG is downloaded directly.
 
 **Image handling**
 
@@ -128,31 +130,35 @@ When images exceed the capacity of a single A4 page, a new page is created autom
 - Supported formats: JPEG, PNG, GIF, WebP. Note: TIFF and HEIC are not reliably supported by html2canvas and should be listed as unsupported in the UI.
 - Adding more images later appends to the existing set
 
-**UI strings reference (German)**
+**UI strings reference**
 
-All user-visible text in one place for consistency during implementation:
+All user-visible text in one place for consistency during implementation. Stored in `src/i18n.js` as a `{ de: {...}, en: {...} }` object.
 
-| Key | Text |
-|---|---|
-| page_title | Bilder-Drucker |
-| add_images | Bilder hinzufügen |
-| clear_all | Alle entfernen |
-| columns_label | Spalten |
-| title_placeholder | Titel |
-| subtext_placeholder | Untertext |
-| drop_zone | Bilder hierher ziehen oder klicken |
-| export_pdf | PDF exportieren |
-| export_jpg | JPG exportieren |
-| exporting | Wird exportiert... |
-| error_file_too_large | Datei zu groß (max. 10 MB) |
-| error_unsupported_format | Format nicht unterstützt (JPEG, PNG, GIF, WebP) |
-| page_label | Seite {n} |
+| Key | German (de) | English (en) |
+|---|---|---|
+| page_title | Bilder-Drucker | Image Printer |
+| add_images | Bilder hinzufügen | Add images |
+| clear_all | Alle entfernen | Clear all |
+| columns_label | Spalten | Columns |
+| title_placeholder | Titel | Title |
+| subtext_placeholder | Untertext | Subtext |
+| drop_zone | Bilder hierher ziehen oder klicken | Drag images here or click |
+| export_pdf | PDF exportieren | Export PDF |
+| export_jpg | JPG exportieren | Export JPG |
+| exporting | Wird exportiert... | Exporting... |
+| error_file_too_large | Datei zu groß (max. 10 MB) | File too large (max. 10 MB) |
+| error_unsupported_format | Format nicht unterstützt (JPEG, PNG, GIF, WebP) | Unsupported format (JPEG, PNG, GIF, WebP) |
+| page_label | Seite {n} | Page {n} |
+| editor_tab | Editor | Editor |
+| preview_tab | Vorschau | Preview |
 
 ---
 
 ### Phase 1 — Project scaffolding, Docker & CI/CD
 
-- [ ] Create `src/` directory with `index.html` (`<html lang="de">`), `style.css`, `app.js`
+- [ ] Create `src/` directory with `index.html`, `style.css`, `app.js`, `i18n.js`
+- [ ] `index.html`: set `<html lang="en">` as default; `app.js` updates it to `de` at runtime if the browser language matches
+- [ ] `i18n.js`: export a `{ de: {...}, en: {...} }` translations object and a `t(key)` helper that returns the string for the detected language
 - [ ] Add `.eslintrc.json` with a minimal config for vanilla JS (browser globals)
 - [ ] Add `.dockerignore`
 - [ ] Add `Dockerfile`:
@@ -176,15 +182,16 @@ All user-visible text in one place for consistency during implementation:
 
 ### Phase 2 — Core UI
 
-- [ ] **Two-panel layout**: editor panel on the left, preview panel on the right. On viewports < 900px, stack vertically with a toggle between "Editor" and "Vorschau"
-- [ ] **Empty state**: before any images are added, show a drop zone / prompt ("Bilder hierher ziehen oder klicken")
+- [ ] **Two-panel layout**: editor panel on the left, preview panel on the right. On viewports < 900px, stack vertically with a toggle between `t('editor_tab')` and `t('preview_tab')`
+- [ ] **Empty state**: before any images are added, show a drop zone / prompt using `t('drop_zone')`
 - [ ] File input (accepts multiple images, `accept="image/jpeg,image/png,image/gif,image/webp"`)
 - [ ] **Drag-and-drop file upload**: handle `dragover`/`drop` events on the drop zone to accept dropped image files (separate from SortableJS reordering)
-- [ ] File size validation: reject files > 10 MB with inline error message ("Datei zu groß (max. 10 MB)")
-- [ ] Image card component: thumbnail, editable title input (placeholder: "Titel"), editable subtext input (placeholder: "Untertext"), remove button
+- [ ] File size validation: reject files > 10 MB with inline error message using `t('error_file_too_large')`
+- [ ] Image card component: thumbnail, editable title input (placeholder: `t('title_placeholder')`), editable subtext input (placeholder: `t('subtext_placeholder')`), remove button
 - [ ] Drag-and-drop reordering of cards using SortableJS
-- [ ] **Column selector**: toggle buttons for 1 / 2 / 3 columns (label: "Spalten", default: 2)
-- [ ] **Clear all** button ("Alle entfernen"): removes all images and resets the editor
+- [ ] **Column selector**: toggle buttons for 1 / 2 / 3 columns (label: `t('columns_label')`, default: 2)
+- [ ] **Clear all** button (`t('clear_all')`): removes all images and resets the editor
+- [ ] All UI text rendered via `t(key)` from `i18n.js` — no hardcoded strings in HTML or `app.js`
 - [ ] Adding more images appends to the existing set
 
 ---
@@ -226,9 +233,9 @@ The A4 preview is a `div` styled at `794px x 1123px` (96 DPI equivalent of 210 x
 
 ### Phase 4 — Export
 
-- [ ] **Export PDF** ("PDF exportieren"): render each A4 page div with html2canvas (`scale: 2` for 192 DPI output), add each canvas to a jsPDF document as a separate page at A4 dimensions, trigger download as `bilder-YYYY-MM-DD.pdf`
-- [ ] **Export JPG** ("JPG exportieren"): render each A4 page div with html2canvas (`scale: 2`), call `canvas.toDataURL('image/jpeg', 0.92)`. If single page, download directly as `seite-1.jpg`. If multiple pages, bundle all JPGs into a zip using JSZip and download as `bilder-YYYY-MM-DD.zip`.
-- [ ] Show a loading spinner / progress indicator during export ("Wird exportiert...")
+- [ ] **Export PDF** (`t('export_pdf')`): render each A4 page div with html2canvas (`scale: 2` for 192 DPI output), add each canvas to a jsPDF document as a separate page at A4 dimensions, trigger download as `images-YYYY-MM-DD.pdf`
+- [ ] **Export JPG** (`t('export_jpg')`): render each A4 page div with html2canvas (`scale: 2`), call `canvas.toDataURL('image/jpeg', 0.92)`. If single page, download directly as `page-1.jpg`. If multiple pages, bundle all JPGs into a zip using JSZip and download as `images-YYYY-MM-DD.zip`.
+- [ ] Show a loading spinner / progress indicator during export (`t('exporting')`)
 
 > **Risk:** html2canvas has known issues rendering CSS grid layouts. Test export early in development. If grid rendering is broken, use absolute positioning or flexbox for the A4 page divs targeted by html2canvas, even if the live preview uses CSS grid.
 
@@ -240,6 +247,7 @@ The A4 preview is a `div` styled at `794px x 1123px` (96 DPI equivalent of 210 x
 simple-local-image-printer/
 ├── src/
 │   ├── index.html
+│   ├── i18n.js
 │   ├── style.css
 │   └── app.js
 ├── .github/
