@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Printer</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <div id="app">
+      <!-- Toolbar -->
+      <header class="toolbar">
+        <div class="toolbar-left">
+          <button id="btn-add-images" type="button" class="btn btn-primary">Add images</button>
+          <input
+            id="file-input"
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            multiple
+            hidden>
+          <span class="columns-control">
+            <span id="columns-label" class="columns-label-text"></span>
+            <button type="button" class="btn btn-col" data-cols="1">1</button>
+            <button type="button" class="btn btn-col active" data-cols="2">2</button>
+            <button type="button" class="btn btn-col" data-cols="3">3</button>
+          </span>
+          <span class="orientation-control">
+            <span id="orientation-label" class="columns-label-text"></span>
+            <button type="button" class="btn btn-col active" data-orientation="portrait" id="btn-portrait">Portrait</button>
+            <button type="button" class="btn btn-col" data-orientation="landscape" id="btn-landscape">Landscape</button>
+          </span>
+          <button id="btn-clear-all" type="button" class="btn btn-danger">Clear all</button>
+        </div>
+        <div class="toolbar-right">
+          <button id="btn-export-pdf" type="button" class="btn btn-export">Export PDF</button>
+          <button id="btn-export-jpg" type="button" class="btn btn-export">Export JPG</button>
+        </div>
+      </header>
+
+      <!-- Mobile tab switcher (visible only < 900px) -->
+      <div class="tab-switcher" role="tablist">
+        <button type="button" class="tab-btn active" data-panel="editor" role="tab" aria-selected="true">Editor</button>
+        <button type="button" class="tab-btn" data-panel="preview" role="tab" aria-selected="false">Preview</button>
+      </div>
+
+      <!-- Main panels -->
+      <main class="panels">
+        <!-- Editor panel -->
+        <section id="panel-editor" class="panel panel-editor" aria-label="Editor">
+          <!-- Drop zone (shown when no images) -->
+          <button id="drop-zone" type="button" class="drop-zone">
+            <span id="drop-zone-text">Drag images here or click</span>
+          </button>
+          <!-- Error messages -->
+          <div id="error-container" class="error-container" aria-live="polite"></div>
+          <!-- Card list -->
+          <div id="card-list" class="card-list"></div>
+        </section>
+
+        <!-- Preview panel -->
+        <section id="panel-preview" class="panel panel-preview" aria-label="Preview">
+          <div id="preview-pages" class="preview-pages"></div>
+        </section>
+      </main>
+    </div>
+
+    <!-- Export overlay -->
+    <div id="export-overlay" class="export-overlay hidden" role="status">
+      <div class="export-spinner"></div>
+      <p id="export-overlay-text"></p>
+    </div>
+
+    <!-- CDN libraries (pinned versions) -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
+    <!-- App scripts -->
+    <script src="i18n.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

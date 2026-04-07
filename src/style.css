@@ -1,0 +1,596 @@
+/* =========================================================
+   CSS Custom Properties
+   ========================================================= */
+:root {
+  --color-bg: #f5f5f5;
+  --color-surface: #ffffff;
+  --color-border: #d0d0d0;
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-export: #16a34a;
+  --color-export-hover: #15803d;
+  --color-text: #111827;
+  --color-muted: #6b7280;
+  --color-active-col: #2563eb;
+  --color-card-bg: #fafafa;
+  --color-drop-zone-bg: #eff6ff;
+  --color-drop-zone-border: #93c5fd;
+  --color-drop-zone-active-bg: #dbeafe;
+  --color-error-bg: #fef2f2;
+  --color-error-text: #b91c1c;
+  --color-error-border: #fca5a5;
+  --color-overlay-bg: rgba(0, 0, 0, 0.55);
+  --radius: 6px;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  --toolbar-height: 52px;
+  --tab-height: 40px;
+}
+
+/* =========================================================
+   Reset & Base
+   ========================================================= */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  color: var(--color-text);
+  background: var(--color-bg);
+  min-height: 100vh;
+}
+
+/* =========================================================
+   App Shell
+   ========================================================= */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* =========================================================
+   Toolbar
+   ========================================================= */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 16px;
+  height: var(--toolbar-height);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.toolbar-left,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* =========================================================
+   Buttons
+   ========================================================= */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  line-height: 1.4;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+}
+.btn-primary:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.btn-danger {
+  background: transparent;
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+.btn-danger:hover {
+  background: var(--color-danger);
+  color: #fff;
+}
+
+.btn-export {
+  background: var(--color-export);
+  color: #fff;
+  border-color: var(--color-export);
+}
+.btn-export:hover {
+  background: var(--color-export-hover);
+  border-color: var(--color-export-hover);
+}
+
+.btn-export:disabled,
+.btn-primary:disabled,
+.btn-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Column toggle buttons */
+.columns-control,
+.orientation-control {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.columns-label-text {
+  font-size: 13px;
+  color: var(--color-muted);
+  margin-right: 2px;
+}
+
+.btn-col {
+  padding: 4px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.btn-col:hover {
+  border-color: var(--color-active-col);
+  color: var(--color-active-col);
+}
+
+.btn-col.active {
+  background: var(--color-active-col);
+  border-color: var(--color-active-col);
+  color: #fff;
+}
+
+/* =========================================================
+   Mobile Tab Switcher
+   ========================================================= */
+.tab-switcher {
+  display: none;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.tab-btn {
+  flex: 1;
+  height: var(--tab-height);
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.tab-btn.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+/* =========================================================
+   Panels
+   ========================================================= */
+.panels {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.panel {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.panel-editor {
+  border-right: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.panel-preview {
+  background: #e5e7eb;
+}
+
+/* =========================================================
+   Drop Zone
+   ========================================================= */
+.drop-zone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 160px;
+  border: 2px dashed var(--color-drop-zone-border);
+  border-radius: var(--radius);
+  background: var(--color-drop-zone-bg);
+  color: var(--color-primary);
+  font-size: 15px;
+  font-weight: 500;
+  font-family: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  user-select: none;
+  margin-bottom: 12px;
+}
+
+.drop-zone:hover,
+.drop-zone.drag-over {
+  background: var(--color-drop-zone-active-bg);
+  border-color: var(--color-primary);
+}
+
+.drop-zone.hidden {
+  display: none;
+}
+
+/* =========================================================
+   Error Container
+   ========================================================= */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error-border);
+  border-radius: var(--radius);
+  color: var(--color-error-text);
+  font-size: 13px;
+}
+
+.error-message button {
+  border: none;
+  background: none;
+  color: var(--color-error-text);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+
+/* =========================================================
+   Card List
+   ========================================================= */
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* =========================================================
+   Image Card
+   ========================================================= */
+.image-card {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  cursor: grab;
+}
+
+.image-card:active {
+  cursor: grabbing;
+}
+
+.image-card.sortable-ghost {
+  opacity: 0.4;
+}
+
+.image-card.sortable-chosen {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+.card-thumbnail {
+  width: 80px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
+  background: var(--color-border);
+}
+
+.card-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.card-fields input {
+  width: 100%;
+  padding: 5px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--color-text);
+  background: var(--color-surface);
+  transition: border-color 0.15s;
+}
+
+.card-fields input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.card-remove {
+  border: none;
+  background: none;
+  color: var(--color-muted);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+
+.card-remove:hover {
+  color: var(--color-danger);
+}
+
+/* =========================================================
+   Preview Pages
+   ========================================================= */
+.preview-pages {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding-bottom: 24px;
+}
+
+/* A4 page wrapper (for scaling) */
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.page-label {
+  font-size: 12px;
+  color: var(--color-muted);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* A4 page — dimensions set dynamically by JS, scaled to fit the preview panel */
+.a4-page {
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  transform-origin: top center;
+}
+
+/* Inner content area — margins and width set dynamically by JS */
+.a4-content {
+  position: absolute;
+  top: 76px;
+  left: 76px;
+  /* width set inline by JS (contentW()) */
+}
+
+/* Cell inside A4 page */
+.a4-cell {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 4px;
+}
+
+.a4-cell-title {
+  font-family: sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  max-height: calc(14px * 1.3 * 2); /* 2 lines */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  width: 100%;
+  line-height: 1.3;
+  margin-bottom: 3px;
+}
+
+.a4-cell-img {
+  object-fit: contain;
+  display: block;
+  width: 100%;
+}
+
+.a4-cell-subtext {
+  font-family: sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  text-align: center;
+  max-height: calc(11px * 1.3 * 2); /* 2 lines */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  width: 100%;
+  line-height: 1.3;
+  margin-top: 3px;
+}
+
+/* =========================================================
+   Preview Panel Scaling
+   ========================================================= */
+.panel-preview {
+  --preview-scale: 1;
+}
+
+.preview-pages {
+  /* transform applied by JS */
+}
+
+/* =========================================================
+   Export Overlay
+   ========================================================= */
+.export-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--color-overlay-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  gap: 16px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.export-overlay.hidden {
+  display: none;
+}
+
+.export-spinner {
+  width: 48px;
+  height: 48px;
+  border: 5px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.85s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================================
+   Responsive — narrow viewport (< 900px)
+   ========================================================= */
+@media (max-width: 899px) {
+  .panels {
+    flex-direction: column;
+    overflow: visible;
+  }
+
+  .panel {
+    flex: none;
+    overflow: visible;
+  }
+
+  .panel-editor {
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .tab-switcher {
+    display: flex;
+  }
+
+  /* Hide inactive panel on mobile */
+  .panel.hidden-mobile {
+    display: none;
+  }
+}
+
+/* =========================================================
+   Print CSS
+   ========================================================= */
+@media print {
+  .toolbar,
+  .tab-switcher,
+  .panel-editor,
+  .export-overlay {
+    display: none !important;
+  }
+
+  .panels {
+    display: block;
+  }
+
+  .panel-preview {
+    padding: 0;
+    background: none;
+    overflow: visible;
+  }
+
+  .preview-pages {
+    gap: 0;
+    padding: 0;
+  }
+
+  .a4-page {
+    transform: none !important;
+    box-shadow: none;
+    page-break-after: always;
+    break-after: page;
+  }
+
+  .page-wrapper {
+    gap: 0;
+  }
+
+  .page-label {
+    display: none;
+  }
+}
