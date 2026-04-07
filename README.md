@@ -10,9 +10,13 @@ Load images from your device, arrange them in a grid, optionally label each one,
 
 - Select multiple images from your device
 - Optionally add a **title** (displayed bold above the image) and a **subtext** (displayed below the image) to each image
+- Choose grid columns (1, 2, or 3 per row)
 - Reorder images via drag-and-drop
-- Preview the composed A4 page in real time
-- Export to PDF or JPG
+- Automatic page breaks when images overflow a single A4 page
+- Preview the composed A4 pages in real time
+- Export to PDF (multi-page) or JPG (one image per page, downloaded as zip)
+
+**Browser support:** Chrome, Firefox, Edge, Safari (latest 2 versions).
 
 ## Usage
 
@@ -44,63 +48,127 @@ python3 -m http.server 8080 --directory src/
 | Concern | Choice | Rationale |
 |---|---|---|
 | Frontend | Vanilla JS + HTML + CSS | No build step, zero framework overhead, served as static files |
-| Drag-and-drop | [SortableJS](https://sortablejs.github.io/Sortable/) (CDN) | Lightweight, no dependencies |
-| PDF export | [jsPDF](https://github.com/parallax/jsPDF) + [html2canvas](https://html2canvas.hertzen.com/) (CDN) | Fully client-side, well maintained |
-| JPG export | html2canvas (same lib) | Reuses the PDF rendering pipeline |
-| Container | nginx:alpine | Minimal image to serve static files |
+| Drag-and-drop | [SortableJS 1.15](https://sortablejs.github.io/Sortable/) (CDN, pinned) | Lightweight, no dependencies |
+| PDF export | [jsPDF 2.5](https://github.com/parallax/jsPDF) + [html2canvas 1.4](https://html2canvas.hertzen.com/) (CDN, pinned) | Fully client-side, well maintained |
+| JPG export | html2canvas (same lib) + [JSZip 3.10](https://stuk.github.io/jszip/) (CDN, pinned) | Reuses the PDF rendering pipeline; zip for multi-page output |
+| Container | nginx:1.27-alpine (pinned) | Minimal image to serve static files |
 | CI/CD | GitHub Actions | PR validation + image publish on merge/tag |
+
+> **Note:** All CDN libraries are loaded with pinned major.minor versions to prevent breaking changes.
+
+### Design decisions
+
+**Layout: side-by-side editor + preview**
+
+The UI uses a two-panel layout: editor on the left, live A4 preview on the right. On narrow viewports (< 900px), the panels stack vertically with a toggle to switch between editor and preview.
+
+```
+┌─────────────────────────┬──────────────────────────────┐
+│  EDITOR PANEL           │  PREVIEW PANEL               │
+│                         │                              │
+│  [+ Add images] [Clear] │  ┌────────────────────────┐  │
+│  Columns: [1] [2] [3]  │  │  A4 Page 1             │  │
+│                         │  │  ┌──────┐ ┌──────┐     │  │
+│  ┌──────────────────┐   │  │  │Title │ │Title │     │  │
+│  │ img1 thumbnail   │   │  │  │ img  │ │ img  │     │  │
+│  │ [Title____]      │   │  │  │Sub   │ │Sub   │     │  │
+│  │ [Subtext__]      │   │  │  └──────┘ └──────┘     │  │
+│  │            [x]   │   │  │  ┌──────┐ ┌──────┐     │  │
+│  └──────────────────┘   │  │  │Title │ │Title │     │  │
+│  ┌──────────────────┐   │  │  │ img  │ │ img  │     │  │
+│  │ img2 thumbnail   │   │  │  │Sub   │ │Sub   │     │  │
+│  │ [Title____]      │   │  │  └──────┘ └──────┘     │  │
+│  │ [Subtext__]      │   │  └────────────────────────┘  │
+│  │            [x]   │   │  ┌────────────────────────┐  │
+│  └──────────────────┘   │  │  A4 Page 2             │  │
+│  ...                    │  │  ...                    │  │
+│                         │  └────────────────────────┘  │
+├─────────────────────────┴──────────────────────────────┤
+│  [Export PDF]  [Export JPG]                            │
+└────────────────────────────────────────────────────────┘
+```
+
+**Grid column control**
+
+The user selects 1, 2, or 3 columns via toggle buttons in the toolbar. Default: 2 columns. This avoids guessing logic and gives the user full control.
+
+**Multi-page handling**
+
+When images exceed the capacity of a single A4 page, a new page is created automatically. The preview panel renders each page as a separate A4 div stacked vertically. Capacity per page depends on column count, image aspect ratios, and whether titles/subtexts are present. The layout engine calculates remaining vertical space and breaks to a new page when the next image cell would overflow.
+
+- **PDF export**: each page becomes a separate PDF page via `jsPDF.addPage()`
+- **JPG export**: each page is rendered as a separate JPG; if there are multiple pages, all JPGs are bundled into a zip file using JSZip and downloaded as `images-YYYY-MM-DD.zip`. If there's only one page, the JPG is downloaded directly.
+
+**Image handling**
+
+- Images are loaded using `URL.createObjectURL()` (no base64 encoding, lower memory footprint)
+- Images exceeding 10 MB are rejected with a user-visible warning
+- Supported formats: JPEG, PNG, GIF, WebP. Note: TIFF and HEIC are not reliably supported by html2canvas and should be listed as unsupported in the UI.
+- Adding more images later appends to the existing set
 
 ---
 
 ### Phase 1 — Project scaffolding
 
 - [ ] Create `src/` directory with `index.html`, `style.css`, `app.js`
-- [ ] Add `Dockerfile` (nginx:alpine serving `src/`)
+- [ ] Add `Dockerfile` (nginx:1.27-alpine serving `src/`)
 - [ ] Add `.dockerignore`
-- [ ] Add `.github/workflows/validate.yml` — runs on every PR, builds the Docker image to verify it builds cleanly
+- [ ] Add `.github/workflows/validate.yml` — runs on every PR: builds the Docker image, runs `html-validate` on `src/index.html`, runs ESLint on `src/app.js`
 - [ ] Add `.github/workflows/publish.yml` — runs on push to `main` and on new version tags (`v*`), builds and pushes the image to GHCR
+- [ ] Add `.eslintrc.json` with a minimal config for vanilla JS (browser globals)
 
 ---
 
 ### Phase 2 — Core UI
 
-```
-┌──────────────────────────────────────────────┐
-│  [+ Add images]                              │  ← toolbar
-├──────────────────────────────────────────────┤
-│  ┌──────┐  ┌──────┐  ┌──────┐               │
-│  │ img1 │  │ img2 │  │ img3 │  ← drag cards │
-│  │      │  │      │  │      │               │
-│  │Title │  │Title │  │Title │               │
-│  │Sub   │  │Sub   │  │Sub   │               │
-│  └──────┘  └──────┘  └──────┘               │
-├──────────────────────────────────────────────┤
-│  [Export PDF]  [Export JPG]                  │  ← actions
-└──────────────────────────────────────────────┘
-```
-
-- [ ] File input (accepts multiple images, `accept="image/*"`)
-- [ ] Image card component: thumbnail, editable title field, editable subtext field, remove button
+- [ ] **Empty state**: before any images are added, show a drop zone / prompt ("Click or drag images here")
+- [ ] File input (accepts multiple images, `accept="image/jpeg,image/png,image/gif,image/webp"`)
+- [ ] File size validation: reject files > 10 MB with inline error message
+- [ ] Image card component: thumbnail, editable title input, editable subtext input, remove button
 - [ ] Drag-and-drop reordering of cards using SortableJS
-- [ ] Live A4 preview panel that mirrors the card order and labels
+- [ ] **Column selector**: toggle buttons for 1 / 2 / 3 columns (default: 2)
+- [ ] **Clear all** button: removes all images and resets the editor
+- [ ] Adding more images appends to the existing set
 
 ---
 
 ### Phase 3 — A4 layout & rendering
 
-The A4 preview is a `div` styled at `794px × 1123px` (96 dpi equivalent of 210 × 297 mm).
+The A4 preview is a `div` styled at `794px x 1123px` (96 DPI equivalent of 210 x 297 mm).
 
-- [ ] CSS grid layout that auto-fills columns (1, 2, or 3 per row depending on image count)
-- [ ] Each cell: bold title (`<strong>`) above image, subtext below image
+**Page dimensions and spacing:**
+
+| Property | Value |
+|---|---|
+| Page size | 794 x 1123 px |
+| Page margins | 20 mm (76 px) on all sides |
+| Usable content area | 642 x 971 px |
+| Cell gap | 8 px horizontal, 12 px vertical |
+| Cell padding | 4 px |
+
+**Typography:**
+
+| Element | Style |
+|---|---|
+| Title | `font-family: sans-serif; font-size: 14px; font-weight: 700; text-align: center;` max 2 lines, overflow hidden with ellipsis |
+| Subtext | `font-family: sans-serif; font-size: 11px; font-weight: 400; text-align: center;` max 2 lines, overflow hidden with ellipsis |
+
+**Layout tasks:**
+
+- [ ] CSS grid layout with user-selected column count (1, 2, or 3)
+- [ ] Each cell: bold title (`<strong>`) above image, subtext below image, centered
 - [ ] Images scale to fill their cell while preserving aspect ratio (`object-fit: contain`)
+- [ ] **Page break logic**: calculate remaining vertical space on the current page; if the next cell (image + title + subtext) doesn't fit, start a new A4 page div
+- [ ] Render multiple A4 page divs stacked vertically in the preview panel
 - [ ] Print-friendly CSS (`@media print`) as a fallback
 
 ---
 
 ### Phase 4 — Export
 
-- [ ] **Export PDF**: render the A4 preview `div` with html2canvas, add the resulting canvas to a jsPDF document at A4 dimensions, trigger download
-- [ ] **Export JPG**: render the A4 preview `div` with html2canvas, call `canvas.toDataURL('image/jpeg')`, trigger download
+- [ ] **Export PDF**: render each A4 page div with html2canvas (`scale: 2` for 192 DPI output), add each canvas to a jsPDF document as a separate page at A4 dimensions, trigger download as `images-YYYY-MM-DD.pdf`
+- [ ] **Export JPG**: render each A4 page div with html2canvas (`scale: 2`), call `canvas.toDataURL('image/jpeg', 0.92)`. If single page, download directly as `page-1.jpg`. If multiple pages, bundle all JPGs into a zip using JSZip and download as `images-YYYY-MM-DD.zip`.
+- [ ] Show a loading spinner / progress indicator during export (html2canvas can be slow with many images)
 
 ---
 
@@ -108,13 +176,15 @@ The A4 preview is a `div` styled at `794px × 1123px` (96 dpi equivalent of 210 
 
 **`Dockerfile`**
 ```dockerfile
-FROM nginx:alpine
+FROM nginx:1.27-alpine
 COPY src/ /usr/share/nginx/html
 ```
 
 **`.github/workflows/validate.yml`** — triggered on PRs targeting `main`:
 1. Checkout code
 2. `docker build .` — fails the check if the build breaks
+3. Run `npx html-validate src/index.html`
+4. Run `npx eslint src/app.js`
 
 **`.github/workflows/publish.yml`** — triggered on push to `main` or tag `v*`:
 1. Checkout code
@@ -137,6 +207,7 @@ simple-local-image-printer/
 │   └── workflows/
 │       ├── validate.yml
 │       └── publish.yml
+├── .eslintrc.json
 ├── Dockerfile
 ├── .dockerignore
 ├── LICENSE
