@@ -71,7 +71,6 @@ The app should be usable immediately after adding images, with zero configuratio
 | Grid columns | 2 | Good balance between detail and overview |
 | Title | _(empty / hidden)_ | Title row is not rendered unless the user types one |
 | Subtext | _(empty / hidden)_ | Subtext row is not rendered unless the user types one |
-| Export format | PDF | Most common use case for A4 output |
 | JPG quality | 0.92 | High quality without excessive file size |
 | html2canvas scale | 2 (192 DPI) | Crisp output for print |
 
@@ -89,7 +88,7 @@ The UI uses a two-panel layout: editor on the left, live A4 preview on the right
 ┌──────────────────────────────┬──────────────────────────────┐
 │  EDITOR                      │  VORSCHAU                    │
 │                              │                              │
-│  [+ Bilder hinzufuegen] [Alle│  ┌────────────────────────┐  │
+│  [+ Bilder hinzufügen]  [Alle│  ┌────────────────────────┐  │
 │   entfernen]                 │  │  Seite 1               │  │
 │  Spalten: [1] [2] [3]       │  │  ┌──────┐ ┌──────┐     │  │
 │                              │  │  │Titel │ │Titel │     │  │
@@ -136,7 +135,7 @@ All user-visible text in one place for consistency during implementation:
 | Key | Text |
 |---|---|
 | page_title | Bilder-Drucker |
-| add_images | Bilder hinzufuegen |
+| add_images | Bilder hinzufügen |
 | clear_all | Alle entfernen |
 | columns_label | Spalten |
 | title_placeholder | Titel |
@@ -145,28 +144,43 @@ All user-visible text in one place for consistency during implementation:
 | export_pdf | PDF exportieren |
 | export_jpg | JPG exportieren |
 | exporting | Wird exportiert... |
-| error_file_too_large | Datei zu gross (max. 10 MB) |
-| error_unsupported_format | Format nicht unterstuetzt (JPEG, PNG, GIF, WebP) |
+| error_file_too_large | Datei zu groß (max. 10 MB) |
+| error_unsupported_format | Format nicht unterstützt (JPEG, PNG, GIF, WebP) |
 | page_label | Seite {n} |
 
 ---
 
-### Phase 1 — Project scaffolding
+### Phase 1 — Project scaffolding, Docker & CI/CD
 
-- [ ] Create `src/` directory with `index.html`, `style.css`, `app.js`
-- [ ] Add `Dockerfile` (nginx:1.27-alpine serving `src/`)
-- [ ] Add `.dockerignore`
-- [ ] Add `.github/workflows/validate.yml` — runs on every PR: builds the Docker image, runs `html-validate` on `src/index.html`, runs ESLint on `src/app.js`
-- [ ] Add `.github/workflows/publish.yml` — runs on push to `main` and on new version tags (`v*`), builds and pushes the image to GHCR
+- [ ] Create `src/` directory with `index.html` (`<html lang="de">`), `style.css`, `app.js`
 - [ ] Add `.eslintrc.json` with a minimal config for vanilla JS (browser globals)
+- [ ] Add `.dockerignore`
+- [ ] Add `Dockerfile`:
+  ```dockerfile
+  FROM nginx:1.27-alpine
+  COPY src/ /usr/share/nginx/html
+  ```
+- [ ] Add `.github/workflows/validate.yml` — triggered on PRs targeting `main`:
+  1. Checkout code
+  2. `docker build .` — fails the check if the build breaks
+  3. Run `npx html-validate src/index.html`
+  4. Run `npx eslint src/app.js`
+- [ ] Add `.github/workflows/publish.yml` — triggered on push to `main` or tag `v*`:
+  1. Checkout code
+  2. Log in to GHCR (`ghcr.io`) using `GITHUB_TOKEN`
+  3. Build and push image with tags:
+     - `ghcr.io/mstroppel/simple-local-image-printer:latest` (on `main`)
+     - `ghcr.io/mstroppel/simple-local-image-printer:vX.Y.Z` (on version tag)
 
 ---
 
 ### Phase 2 — Core UI
 
+- [ ] **Two-panel layout**: editor panel on the left, preview panel on the right. On viewports < 900px, stack vertically with a toggle between "Editor" and "Vorschau"
 - [ ] **Empty state**: before any images are added, show a drop zone / prompt ("Bilder hierher ziehen oder klicken")
 - [ ] File input (accepts multiple images, `accept="image/jpeg,image/png,image/gif,image/webp"`)
-- [ ] File size validation: reject files > 10 MB with inline error message ("Datei zu gross (max. 10 MB)")
+- [ ] **Drag-and-drop file upload**: handle `dragover`/`drop` events on the drop zone to accept dropped image files (separate from SortableJS reordering)
+- [ ] File size validation: reject files > 10 MB with inline error message ("Datei zu groß (max. 10 MB)")
 - [ ] Image card component: thumbnail, editable title input (placeholder: "Titel"), editable subtext input (placeholder: "Untertext"), remove button
 - [ ] Drag-and-drop reordering of cards using SortableJS
 - [ ] **Column selector**: toggle buttons for 1 / 2 / 3 columns (label: "Spalten", default: 2)
@@ -188,6 +202,9 @@ The A4 preview is a `div` styled at `794px x 1123px` (96 DPI equivalent of 210 x
 | Usable content area | 642 x 971 px |
 | Cell gap | 8 px horizontal, 12 px vertical |
 | Cell padding | 4 px |
+| Max image height (1 col) | 800 px | Images scale down with `object-fit: contain` within this limit |
+| Max image height (2 col) | 380 px | |
+| Max image height (3 col) | 240 px | |
 
 **Typography:**
 
@@ -201,7 +218,7 @@ The A4 preview is a `div` styled at `794px x 1123px` (96 DPI equivalent of 210 x
 - [ ] CSS grid layout with user-selected column count (1, 2, or 3)
 - [ ] Each cell: bold title (`<strong>`) above image, subtext below image, centered
 - [ ] Images scale to fill their cell while preserving aspect ratio (`object-fit: contain`)
-- [ ] **Page break logic**: calculate remaining vertical space on the current page; if the next cell (image + title + subtext) doesn't fit, start a new A4 page div
+- [ ] **Page break logic**: use a JS-driven layout that places cells sequentially, tracking the current Y offset. When the next cell (image height + title + subtext + gap) would exceed the usable content height (971 px), create a new A4 page div and reset Y to 0. Do not rely on CSS overflow detection — calculate placement explicitly.
 - [ ] Render multiple A4 page divs stacked vertically in the preview panel
 - [ ] Print-friendly CSS (`@media print`) as a fallback
 
@@ -213,28 +230,7 @@ The A4 preview is a `div` styled at `794px x 1123px` (96 DPI equivalent of 210 x
 - [ ] **Export JPG** ("JPG exportieren"): render each A4 page div with html2canvas (`scale: 2`), call `canvas.toDataURL('image/jpeg', 0.92)`. If single page, download directly as `seite-1.jpg`. If multiple pages, bundle all JPGs into a zip using JSZip and download as `bilder-YYYY-MM-DD.zip`.
 - [ ] Show a loading spinner / progress indicator during export ("Wird exportiert...")
 
----
-
-### Phase 5 — Docker & CI/CD
-
-**`Dockerfile`**
-```dockerfile
-FROM nginx:1.27-alpine
-COPY src/ /usr/share/nginx/html
-```
-
-**`.github/workflows/validate.yml`** — triggered on PRs targeting `main`:
-1. Checkout code
-2. `docker build .` — fails the check if the build breaks
-3. Run `npx html-validate src/index.html`
-4. Run `npx eslint src/app.js`
-
-**`.github/workflows/publish.yml`** — triggered on push to `main` or tag `v*`:
-1. Checkout code
-2. Log in to GHCR (`ghcr.io`) using `GITHUB_TOKEN`
-3. Build and push image with tags:
-   - `ghcr.io/mstroppel/simple-local-image-printer:latest` (on `main`)
-   - `ghcr.io/mstroppel/simple-local-image-printer:vX.Y.Z` (on version tag)
+> **Risk:** html2canvas has known issues rendering CSS grid layouts. Test export early in development. If grid rendering is broken, use absolute positioning or flexbox for the A4 page divs targeted by html2canvas, even if the live preview uses CSS grid.
 
 ---
 
