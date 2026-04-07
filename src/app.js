@@ -470,14 +470,9 @@ tabButtons.forEach(function (btn) {
 // Drop zone events
 // ---------------------------------------------------------------------------
 
+// Drop zone is a native <button>; click is handled automatically (no keydown needed)
 dropZone.addEventListener('click', function () {
   fileInput.click();
-});
-
-dropZone.addEventListener('keydown', function (e) {
-  if (e.key === 'Enter' || e.key === ' ') {
-    fileInput.click();
-  }
 });
 
 // Drag-and-drop on the whole editor panel

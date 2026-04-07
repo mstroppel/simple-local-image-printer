@@ -1,54 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Printer</title>
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css">
   </head>
   <body>
     <div id="app">
       <!-- Toolbar -->
       <header class="toolbar">
         <div class="toolbar-left">
-          <button id="btn-add-images" class="btn btn-primary" aria-label="Add images">
-            <!-- label set by JS -->
-          </button>
+          <button id="btn-add-images" type="button" class="btn btn-primary"></button>
           <input
             id="file-input"
             type="file"
             accept="image/jpeg,image/png,image/gif,image/webp"
             multiple
-            hidden
-          />
+            hidden>
           <span class="columns-control">
             <span id="columns-label" class="columns-label-text"></span>
-            <button class="btn btn-col" data-cols="1">1</button>
-            <button class="btn btn-col active" data-cols="2">2</button>
-            <button class="btn btn-col" data-cols="3">3</button>
+            <button type="button" class="btn btn-col" data-cols="1">1</button>
+            <button type="button" class="btn btn-col active" data-cols="2">2</button>
+            <button type="button" class="btn btn-col" data-cols="3">3</button>
           </span>
-          <button id="btn-clear-all" class="btn btn-danger" aria-label="Clear all">
-            <!-- label set by JS -->
-          </button>
+          <button id="btn-clear-all" type="button" class="btn btn-danger"></button>
         </div>
         <div class="toolbar-right">
-          <button id="btn-export-pdf" class="btn btn-export" aria-label="Export PDF">
-            <!-- label set by JS -->
-          </button>
-          <button id="btn-export-jpg" class="btn btn-export" aria-label="Export JPG">
-            <!-- label set by JS -->
-          </button>
+          <button id="btn-export-pdf" type="button" class="btn btn-export"></button>
+          <button id="btn-export-jpg" type="button" class="btn btn-export"></button>
         </div>
       </header>
 
       <!-- Mobile tab switcher (visible only < 900px) -->
       <div class="tab-switcher" role="tablist">
-        <button class="tab-btn active" data-panel="editor" role="tab" aria-selected="true">
-          <!-- label set by JS -->
-        </button>
-        <button class="tab-btn" data-panel="preview" role="tab" aria-selected="false">
-          <!-- label set by JS -->
-        </button>
+        <button type="button" class="tab-btn active" data-panel="editor" role="tab" aria-selected="true">Editor</button>
+        <button type="button" class="tab-btn" data-panel="preview" role="tab" aria-selected="false">Preview</button>
       </div>
 
       <!-- Main panels -->
@@ -56,13 +43,13 @@
         <!-- Editor panel -->
         <section id="panel-editor" class="panel panel-editor" aria-label="Editor">
           <!-- Drop zone (shown when no images) -->
-          <div id="drop-zone" class="drop-zone" role="button" tabindex="0" aria-label="Drop zone">
+          <button id="drop-zone" type="button" class="drop-zone">
             <span id="drop-zone-text"></span>
-          </div>
+          </button>
           <!-- Error messages -->
           <div id="error-container" class="error-container" aria-live="polite"></div>
           <!-- Card list -->
-          <div id="card-list" class="card-list" aria-label="Image cards"></div>
+          <div id="card-list" class="card-list"></div>
         </section>
 
         <!-- Preview panel -->
