@@ -56,36 +56,59 @@ python3 -m http.server 8080 --directory src/
 
 > **Note:** All CDN libraries are loaded with pinned major.minor versions to prevent breaking changes.
 
+### UX principles
+
+**Language: German**
+
+The entire UI is in German from the start. All labels, buttons, placeholders, tooltips, and error messages use German text. There is no language switcher — German is the only language.
+
+**Ease of use: sensible defaults**
+
+The app should be usable immediately after adding images, with zero configuration required. Every setting has a sensible default so the user can go straight from "add images" to "export" without touching anything else.
+
+| Setting | Default | Rationale |
+|---|---|---|
+| Grid columns | 2 | Good balance between detail and overview |
+| Title | _(empty / hidden)_ | Title row is not rendered unless the user types one |
+| Subtext | _(empty / hidden)_ | Subtext row is not rendered unless the user types one |
+| Export format | PDF | Most common use case for A4 output |
+| JPG quality | 0.92 | High quality without excessive file size |
+| html2canvas scale | 2 (192 DPI) | Crisp output for print |
+
+If title and subtext are both empty for an image, the cell shows only the image — no blank space is reserved for the labels. This means the default experience (no labels) maximizes image size.
+
+---
+
 ### Design decisions
 
 **Layout: side-by-side editor + preview**
 
-The UI uses a two-panel layout: editor on the left, live A4 preview on the right. On narrow viewports (< 900px), the panels stack vertically with a toggle to switch between editor and preview.
+The UI uses a two-panel layout: editor on the left, live A4 preview on the right. On narrow viewports (< 900px), the panels stack vertically with a toggle to switch between editor ("Editor") and preview ("Vorschau").
 
 ```
-┌─────────────────────────┬──────────────────────────────┐
-│  EDITOR PANEL           │  PREVIEW PANEL               │
-│                         │                              │
-│  [+ Add images] [Clear] │  ┌────────────────────────┐  │
-│  Columns: [1] [2] [3]  │  │  A4 Page 1             │  │
-│                         │  │  ┌──────┐ ┌──────┐     │  │
-│  ┌──────────────────┐   │  │  │Title │ │Title │     │  │
-│  │ img1 thumbnail   │   │  │  │ img  │ │ img  │     │  │
-│  │ [Title____]      │   │  │  │Sub   │ │Sub   │     │  │
-│  │ [Subtext__]      │   │  │  └──────┘ └──────┘     │  │
-│  │            [x]   │   │  │  ┌──────┐ ┌──────┐     │  │
-│  └──────────────────┘   │  │  │Title │ │Title │     │  │
-│  ┌──────────────────┐   │  │  │ img  │ │ img  │     │  │
-│  │ img2 thumbnail   │   │  │  │Sub   │ │Sub   │     │  │
-│  │ [Title____]      │   │  │  └──────┘ └──────┘     │  │
-│  │ [Subtext__]      │   │  └────────────────────────┘  │
-│  │            [x]   │   │  ┌────────────────────────┐  │
-│  └──────────────────┘   │  │  A4 Page 2             │  │
-│  ...                    │  │  ...                    │  │
-│                         │  └────────────────────────┘  │
-├─────────────────────────┴──────────────────────────────┤
-│  [Export PDF]  [Export JPG]                            │
-└────────────────────────────────────────────────────────┘
+┌──────────────────────────────┬──────────────────────────────┐
+│  EDITOR                      │  VORSCHAU                    │
+│                              │                              │
+│  [+ Bilder hinzufuegen] [Alle│  ┌────────────────────────┐  │
+│   entfernen]                 │  │  Seite 1               │  │
+│  Spalten: [1] [2] [3]       │  │  ┌──────┐ ┌──────┐     │  │
+│                              │  │  │Titel │ │Titel │     │  │
+│  ┌────────────────────────┐  │  │  │ Bild │ │ Bild │     │  │
+│  │ Bild-1 Vorschau        │  │  │  │Unter │ │Unter │     │  │
+│  │ [Titel________]        │  │  │  └──────┘ └──────┘     │  │
+│  │ [Untertext____]        │  │  │  ┌──────┐ ┌──────┐     │  │
+│  │               [x]      │  │  │  │Titel │ │Titel │     │  │
+│  └────────────────────────┘  │  │  │ Bild │ │ Bild │     │  │
+│  ┌────────────────────────┐  │  │  │Unter │ │Unter │     │  │
+│  │ Bild-2 Vorschau        │  │  │  └──────┘ └──────┘     │  │
+│  │ [Titel________]        │  │  └────────────────────────┘  │
+│  │ [Untertext____]        │  │  ┌────────────────────────┐  │
+│  │               [x]      │  │  │  Seite 2               │  │
+│  └────────────────────────┘  │  │  ...                    │  │
+│  ...                         │  └────────────────────────┘  │
+├──────────────────────────────┴──────────────────────────────┤
+│  [PDF exportieren]  [JPG exportieren]                       │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 **Grid column control**
@@ -97,7 +120,7 @@ The user selects 1, 2, or 3 columns via toggle buttons in the toolbar. Default: 
 When images exceed the capacity of a single A4 page, a new page is created automatically. The preview panel renders each page as a separate A4 div stacked vertically. Capacity per page depends on column count, image aspect ratios, and whether titles/subtexts are present. The layout engine calculates remaining vertical space and breaks to a new page when the next image cell would overflow.
 
 - **PDF export**: each page becomes a separate PDF page via `jsPDF.addPage()`
-- **JPG export**: each page is rendered as a separate JPG; if there are multiple pages, all JPGs are bundled into a zip file using JSZip and downloaded as `images-YYYY-MM-DD.zip`. If there's only one page, the JPG is downloaded directly.
+- **JPG export**: each page is rendered as a separate JPG; if there are multiple pages, all JPGs are bundled into a zip file using JSZip and downloaded as `bilder-YYYY-MM-DD.zip`. If there's only one page, the JPG is downloaded directly.
 
 **Image handling**
 
@@ -105,6 +128,26 @@ When images exceed the capacity of a single A4 page, a new page is created autom
 - Images exceeding 10 MB are rejected with a user-visible warning
 - Supported formats: JPEG, PNG, GIF, WebP. Note: TIFF and HEIC are not reliably supported by html2canvas and should be listed as unsupported in the UI.
 - Adding more images later appends to the existing set
+
+**UI strings reference (German)**
+
+All user-visible text in one place for consistency during implementation:
+
+| Key | Text |
+|---|---|
+| page_title | Bilder-Drucker |
+| add_images | Bilder hinzufuegen |
+| clear_all | Alle entfernen |
+| columns_label | Spalten |
+| title_placeholder | Titel |
+| subtext_placeholder | Untertext |
+| drop_zone | Bilder hierher ziehen oder klicken |
+| export_pdf | PDF exportieren |
+| export_jpg | JPG exportieren |
+| exporting | Wird exportiert... |
+| error_file_too_large | Datei zu gross (max. 10 MB) |
+| error_unsupported_format | Format nicht unterstuetzt (JPEG, PNG, GIF, WebP) |
+| page_label | Seite {n} |
 
 ---
 
@@ -121,13 +164,13 @@ When images exceed the capacity of a single A4 page, a new page is created autom
 
 ### Phase 2 — Core UI
 
-- [ ] **Empty state**: before any images are added, show a drop zone / prompt ("Click or drag images here")
+- [ ] **Empty state**: before any images are added, show a drop zone / prompt ("Bilder hierher ziehen oder klicken")
 - [ ] File input (accepts multiple images, `accept="image/jpeg,image/png,image/gif,image/webp"`)
-- [ ] File size validation: reject files > 10 MB with inline error message
-- [ ] Image card component: thumbnail, editable title input, editable subtext input, remove button
+- [ ] File size validation: reject files > 10 MB with inline error message ("Datei zu gross (max. 10 MB)")
+- [ ] Image card component: thumbnail, editable title input (placeholder: "Titel"), editable subtext input (placeholder: "Untertext"), remove button
 - [ ] Drag-and-drop reordering of cards using SortableJS
-- [ ] **Column selector**: toggle buttons for 1 / 2 / 3 columns (default: 2)
-- [ ] **Clear all** button: removes all images and resets the editor
+- [ ] **Column selector**: toggle buttons for 1 / 2 / 3 columns (label: "Spalten", default: 2)
+- [ ] **Clear all** button ("Alle entfernen"): removes all images and resets the editor
 - [ ] Adding more images appends to the existing set
 
 ---
@@ -166,9 +209,9 @@ The A4 preview is a `div` styled at `794px x 1123px` (96 DPI equivalent of 210 x
 
 ### Phase 4 — Export
 
-- [ ] **Export PDF**: render each A4 page div with html2canvas (`scale: 2` for 192 DPI output), add each canvas to a jsPDF document as a separate page at A4 dimensions, trigger download as `images-YYYY-MM-DD.pdf`
-- [ ] **Export JPG**: render each A4 page div with html2canvas (`scale: 2`), call `canvas.toDataURL('image/jpeg', 0.92)`. If single page, download directly as `page-1.jpg`. If multiple pages, bundle all JPGs into a zip using JSZip and download as `images-YYYY-MM-DD.zip`.
-- [ ] Show a loading spinner / progress indicator during export (html2canvas can be slow with many images)
+- [ ] **Export PDF** ("PDF exportieren"): render each A4 page div with html2canvas (`scale: 2` for 192 DPI output), add each canvas to a jsPDF document as a separate page at A4 dimensions, trigger download as `bilder-YYYY-MM-DD.pdf`
+- [ ] **Export JPG** ("JPG exportieren"): render each A4 page div with html2canvas (`scale: 2`), call `canvas.toDataURL('image/jpeg', 0.92)`. If single page, download directly as `seite-1.jpg`. If multiple pages, bundle all JPGs into a zip using JSZip and download as `bilder-YYYY-MM-DD.zip`.
+- [ ] Show a loading spinner / progress indicator during export ("Wird exportiert...")
 
 ---
 
