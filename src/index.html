@@ -11,7 +11,7 @@
       <!-- Toolbar -->
       <header class="toolbar">
         <div class="toolbar-left">
-          <button id="btn-add-images" type="button" class="btn btn-primary"></button>
+          <button id="btn-add-images" type="button" class="btn btn-primary">Add images</button>
           <input
             id="file-input"
             type="file"
@@ -26,14 +26,14 @@
           </span>
           <span class="orientation-control">
             <span id="orientation-label" class="columns-label-text"></span>
-            <button type="button" class="btn btn-col active" data-orientation="portrait" id="btn-portrait"></button>
-            <button type="button" class="btn btn-col" data-orientation="landscape" id="btn-landscape"></button>
+            <button type="button" class="btn btn-col active" data-orientation="portrait" id="btn-portrait">Portrait</button>
+            <button type="button" class="btn btn-col" data-orientation="landscape" id="btn-landscape">Landscape</button>
           </span>
-          <button id="btn-clear-all" type="button" class="btn btn-danger"></button>
+          <button id="btn-clear-all" type="button" class="btn btn-danger">Clear all</button>
         </div>
         <div class="toolbar-right">
-          <button id="btn-export-pdf" type="button" class="btn btn-export"></button>
-          <button id="btn-export-jpg" type="button" class="btn btn-export"></button>
+          <button id="btn-export-pdf" type="button" class="btn btn-export">Export PDF</button>
+          <button id="btn-export-jpg" type="button" class="btn btn-export">Export JPG</button>
         </div>
       </header>
 
@@ -49,7 +49,7 @@
         <section id="panel-editor" class="panel panel-editor" aria-label="Editor">
           <!-- Drop zone (shown when no images) -->
           <button id="drop-zone" type="button" class="drop-zone">
-            <span id="drop-zone-text"></span>
+            <span id="drop-zone-text">Drag images here or click</span>
           </button>
           <!-- Error messages -->
           <div id="error-container" class="error-container" aria-live="polite"></div>
