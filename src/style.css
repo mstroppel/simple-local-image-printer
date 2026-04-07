@@ -142,7 +142,8 @@ body {
 }
 
 /* Column toggle buttons */
-.columns-control {
+.columns-control,
+.orientation-control {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -409,10 +410,8 @@ body {
   text-transform: uppercase;
 }
 
-/* A4 page — 794 × 1123 px, scaled to fit the preview panel */
+/* A4 page — dimensions set dynamically by JS, scaled to fit the preview panel */
 .a4-page {
-  width: 794px;
-  height: 1123px;
   background: #fff;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
   flex-shrink: 0;
@@ -421,13 +420,12 @@ body {
   transform-origin: top center;
 }
 
-/* Inner content area with 76px (20 mm) margins */
+/* Inner content area — margins and width set dynamically by JS */
 .a4-content {
   position: absolute;
   top: 76px;
   left: 76px;
-  width: 642px; /* 794 - 2*76 */
-  /* height managed by JS placement */
+  /* width set inline by JS (contentW()) */
 }
 
 /* Cell inside A4 page */

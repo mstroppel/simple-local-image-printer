@@ -8,12 +8,10 @@
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const ACCEPTED_MIME = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
-// A4 layout constants (pixels at 96 DPI)
-const PAGE_W = 794;
-const PAGE_H = 1123;
+// A4 base dimensions (pixels at 96 DPI) — short edge × long edge
+const A4_SHORT = 794;
+const A4_LONG  = 1123;
 const MARGIN = 76; // 20 mm
-const CONTENT_W = PAGE_W - 2 * MARGIN; // 642
-const CONTENT_H = PAGE_H - 2 * MARGIN; // 971
 const CELL_GAP_H = 8;
 const CELL_GAP_V = 12;
 const CELL_PAD = 4;
@@ -24,9 +22,6 @@ const SUBTEXT_MAX_LINES = 2;
 const TITLE_MARGIN_B = 3;
 const SUBTEXT_MARGIN_T = 3;
 
-/** Max image heights per column count */
-const MAX_IMG_H = { 1: 800, 2: 380, 3: 240 };
-
 // ---------------------------------------------------------------------------
 // State
 // ---------------------------------------------------------------------------
@@ -34,6 +29,47 @@ const MAX_IMG_H = { 1: 800, 2: 380, 3: 240 };
 /** @type {{ id: string, url: string, title: string, subtext: string, naturalW: number, naturalH: number }[]} */
 let images = [];
 let columns = 2;
+/** @type {'portrait'|'landscape'} */
+let orientation = 'portrait';
+
+// ---------------------------------------------------------------------------
+// Derived page geometry (recalculated whenever orientation changes)
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns current page width in px.
+ * @returns {number}
+ */
+function pageW() {
+  return orientation === 'portrait' ? A4_SHORT : A4_LONG;
+}
+
+/**
+ * Returns current page height in px.
+ * @returns {number}
+ */
+function pageH() {
+  return orientation === 'portrait' ? A4_LONG : A4_SHORT;
+}
+
+/** Usable content width in px. */
+function contentW() { return pageW() - 2 * MARGIN; }
+
+/** Usable content height in px. */
+function contentH() { return pageH() - 2 * MARGIN; }
+
+/**
+ * Max image height per column count for the current orientation.
+ * Landscape has more width and less height, so caps are adjusted.
+ * @param {number} cols
+ * @returns {number}
+ */
+function maxImgH(cols) {
+  if (orientation === 'landscape') {
+    return { 1: 500, 2: 280, 3: 170 }[cols];
+  }
+  return { 1: 800, 2: 380, 3: 240 }[cols];
+}
 
 // ---------------------------------------------------------------------------
 // DOM references
@@ -51,7 +87,8 @@ const cardList = document.getElementById('card-list');
 const previewPages = document.getElementById('preview-pages');
 const exportOverlay = document.getElementById('export-overlay');
 const exportOverlayText = document.getElementById('export-overlay-text');
-const colButtons = document.querySelectorAll('.btn-col');
+const colButtons = document.querySelectorAll('.btn-col[data-cols]');
+const orientationButtons = document.querySelectorAll('.btn-col[data-orientation]');
 const tabButtons = document.querySelectorAll('.tab-btn');
 const panelEditor = document.getElementById('panel-editor');
 const panelPreview = document.getElementById('panel-preview');
@@ -70,6 +107,9 @@ function applyI18n() {
   dropZoneText.textContent = t('drop_zone');
   exportOverlayText.textContent = t('exporting');
   document.getElementById('columns-label').textContent = t('columns_label') + ':';
+  document.getElementById('orientation-label').textContent = t('orientation_label') + ':';
+  document.getElementById('btn-portrait').textContent = t('portrait');
+  document.getElementById('btn-landscape').textContent = t('landscape');
   tabButtons.forEach(function (btn) {
     btn.textContent = t(btn.dataset.panel === 'editor' ? 'editor_tab' : 'preview_tab');
   });
@@ -260,6 +300,20 @@ colButtons.forEach(function (btn) {
 });
 
 // ---------------------------------------------------------------------------
+// Orientation selector
+// ---------------------------------------------------------------------------
+
+orientationButtons.forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    orientation = btn.dataset.orientation;
+    orientationButtons.forEach(function (b) {
+      b.classList.toggle('active', b === btn);
+    });
+    renderPreview();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // A4 Preview rendering
 // ---------------------------------------------------------------------------
 
@@ -278,11 +332,11 @@ function cellHeight(entry, cellW) {
   }
 
   // Image
-  const maxH = MAX_IMG_H[columns];
   const imgContentW = cellW - CELL_PAD * 2;
   const aspect = entry.naturalH / entry.naturalW;
   let imgH = imgContentW * aspect;
-  if (imgH > maxH) imgH = maxH;
+  const cap = maxImgH(columns);
+  if (imgH > cap) imgH = cap;
   h += imgH;
 
   // Subtext (only if non-empty)
@@ -299,7 +353,7 @@ function cellHeight(entry, cellW) {
  * @returns {number}
  */
 function cellWidth(cols) {
-  return (CONTENT_W - (cols - 1) * CELL_GAP_H) / cols;
+  return (contentW() - (cols - 1) * CELL_GAP_H) / cols;
 }
 
 /**
@@ -316,9 +370,13 @@ function createPageDiv(pageNumber) {
 
   const page = document.createElement('div');
   page.className = 'a4-page';
+  page.dataset.orientation = orientation;
+  page.style.width  = pageW() + 'px';
+  page.style.height = pageH() + 'px';
 
   const content = document.createElement('div');
   content.className = 'a4-content';
+  content.style.width = contentW() + 'px';
   page.appendChild(content);
 
   wrapper.appendChild(label);
@@ -359,7 +417,7 @@ function renderPreview() {
     // If starting a new row, check if it fits on the current page
     if (colIdx === 0) {
       const gap = currentY > 0 ? CELL_GAP_V : 0;
-      if (currentY > 0 && currentY + gap + cH > CONTENT_H) {
+      if (currentY > 0 && currentY + gap + cH > contentH()) {
         // New page
         pageNumber++;
         currentPageData = createPageDiv(pageNumber);
@@ -390,10 +448,10 @@ function renderPreview() {
 
     // Image
     const imgContentW = cW - CELL_PAD * 2;
-    const maxH = MAX_IMG_H[cols];
+    const cap = maxImgH(cols);
     const aspect = entry.naturalH / entry.naturalW;
     let imgH = imgContentW * aspect;
-    if (imgH > maxH) imgH = maxH;
+    if (imgH > cap) imgH = cap;
 
     const imgEl = document.createElement('img');
     imgEl.className = 'a4-cell-img';
@@ -432,10 +490,10 @@ function renderPreview() {
 
 function scalePreview() {
   const panelW = panelPreview.clientWidth - 32; // 16px padding each side
-  const scale = Math.min(1, panelW / PAGE_W);
+  const scale = Math.min(1, panelW / pageW());
   document.querySelectorAll('.a4-page').forEach(function (page) {
     page.style.transform = 'scale(' + scale + ')';
-    page.style.marginBottom = (PAGE_H * scale - PAGE_H) + 'px';
+    page.style.marginBottom = (pageH() * scale - pageH()) + 'px';
   });
 }
 
@@ -554,10 +612,10 @@ function capturePageCanvas(pageDiv) {
       useCORS: true,
       allowTaint: false,
       backgroundColor: '#ffffff',
-      width: PAGE_W,
-      height: PAGE_H,
-      windowWidth: PAGE_W,
-      windowHeight: PAGE_H,
+      width: pageW(),
+      height: pageH(),
+      windowWidth: pageW(),
+      windowHeight: pageH(),
     }).then(function (canvas) {
       pageDiv.style.transform = origTransform;
       pageDiv.style.marginBottom = origMarginBottom;
@@ -581,13 +639,14 @@ async function exportPdf() {
     const pageDivs = getPageDivs();
     // eslint-disable-next-line no-undef
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: [PAGE_W, PAGE_H] });
+    const pdfOrientation = orientation === 'landscape' ? 'landscape' : 'portrait';
+    const pdf = new jsPDF({ orientation: pdfOrientation, unit: 'px', format: [pageW(), pageH()] });
 
     for (let i = 0; i < pageDivs.length; i++) {
-      if (i > 0) pdf.addPage([PAGE_W, PAGE_H], 'portrait');
+      if (i > 0) pdf.addPage([pageW(), pageH()], pdfOrientation);
       const canvas = await capturePageCanvas(pageDivs[i]);
       const imgData = canvas.toDataURL('image/jpeg', 0.95);
-      pdf.addImage(imgData, 'JPEG', 0, 0, PAGE_W, PAGE_H, '', 'FAST');
+      pdf.addImage(imgData, 'JPEG', 0, 0, pageW(), pageH(), '', 'FAST');
     }
 
     pdf.save('images-' + dateStr() + '.pdf');

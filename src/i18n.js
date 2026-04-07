@@ -18,6 +18,9 @@ const translations = {
     page_label: 'Seite {n}',
     editor_tab: 'Editor',
     preview_tab: 'Vorschau',
+    orientation_label: 'Ausrichtung',
+    portrait: 'Hochformat',
+    landscape: 'Querformat',
   },
   en: {
     page_title: 'Image Printer',
@@ -35,6 +38,9 @@ const translations = {
     page_label: 'Page {n}',
     editor_tab: 'Editor',
     preview_tab: 'Preview',
+    orientation_label: 'Orientation',
+    portrait: 'Portrait',
+    landscape: 'Landscape',
   },
 };
 
