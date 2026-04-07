@@ -1,0 +1,22 @@
+name: Validate
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Docker build
+        run: docker build .
+
+      - name: HTML validate
+        run: npx --yes html-validate src/index.html
+
+      - name: ESLint
+        run: npx --yes eslint src/app.js
