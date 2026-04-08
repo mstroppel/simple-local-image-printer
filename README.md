@@ -2,6 +2,14 @@
 
 A browser-based tool to compose and export images on A4 pages — no server, no uploads, fully local.
 
+## Quick Start
+
+```bash
+docker run -p 8080:80 ghcr.io/mstroppel/simple-local-image-printer:latest
+```
+
+Then open `http://localhost:8080`.
+
 ## What it does
 
 Load images from your device, arrange them in a grid, optionally label each one, then export the result as a PDF or JPG. Everything runs in the browser; no data ever leaves your machine.
@@ -33,12 +41,16 @@ Load images from your device, arrange them in a grid, optionally label each one,
 
 **Browser support:** Chrome, Firefox, Edge, Safari (latest 2 versions).
 
+## Requirements
+
+- One of: Docker, Node.js (for `npx serve`), or Python 3 (for `http.server`)
+- A modern desktop browser (Chrome, Firefox, Edge, Safari)
+
 ## Usage
 
 ### With Docker (recommended)
 
 ```bash
-docker pull ghcr.io/mstroppel/simple-local-image-printer:latest
 docker run -p 8080:80 ghcr.io/mstroppel/simple-local-image-printer:latest
 ```
 
@@ -53,6 +65,12 @@ npx serve src/
 # or
 python3 -m http.server 8080 --directory src/
 ```
+
+## Limitations
+
+- Supported image formats: JPEG, PNG, GIF, WebP
+- TIFF and HEIC are not reliably supported in browser export
+- Files larger than 10 MB are rejected
 
 ## License
 
