@@ -30,20 +30,20 @@ Load images from your device, arrange them in a grid, optionally label each one,
 
 ## Tech stack
 
-| Concern | Choice | Rationale |
-|---|---|---|
-| Frontend | Vanilla JS + HTML + CSS | No build step, zero framework overhead, served as static files |
-| Drag-and-drop | [SortableJS 1.15](https://sortablejs.github.io/Sortable/) (CDN, pinned) | Lightweight, no dependencies |
-| PDF export | [jsPDF 2.5](https://github.com/parallax/jsPDF) + [html2canvas 1.4](https://html2canvas.hertzen.com/) (CDN, pinned) | Fully client-side, well maintained |
-| JPG export | html2canvas (same lib) + [JSZip 3.10](https://stuk.github.io/jszip/) (CDN, pinned) | Reuses the PDF rendering pipeline; zip for multi-page output |
-| Container | nginx:1.27-alpine (pinned) | Minimal image to serve static files |
-| CI/CD | GitHub Actions | PR validation + image publish on merge/tag |
+| Concern       | Choice                                                                                                             | Rationale                                                      |
+| ------------- | ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------- |
+| Frontend      | Vanilla JS + HTML + CSS                                                                                            | No build step, zero framework overhead, served as static files |
+| Drag-and-drop | [SortableJS 1.15](https://sortablejs.github.io/Sortable/) (CDN, pinned)                                            | Lightweight, no dependencies                                   |
+| PDF export    | [jsPDF 2.5](https://github.com/parallax/jsPDF) + [html2canvas 1.4](https://html2canvas.hertzen.com/) (CDN, pinned) | Fully client-side, well maintained                             |
+| JPG export    | html2canvas (same lib) + [JSZip 3.10](https://stuk.github.io/jszip/) (CDN, pinned)                                 | Reuses the PDF rendering pipeline; zip for multi-page output   |
+| Container     | nginx:1.27-alpine (pinned)                                                                                         | Minimal image to serve static files                            |
+| CI/CD         | GitHub Actions                                                                                                     | PR validation + image publish on merge/tag                     |
 
 **Browser support:** Chrome, Firefox, Edge, Safari (latest 2 versions).
 
 ## Requirements
 
-- One of: Docker, Node.js (for `npx serve`), or Python 3 (for `http.server`)
+- One of: Docker, Node.js (for `npx serve`)
 - A modern desktop browser (Chrome, Firefox, Edge, Safari)
 
 ## Usage
@@ -62,8 +62,6 @@ No build step required. Serve the `src/` directory with any static file server:
 
 ```bash
 npx serve src/
-# or
-python3 -m http.server 8080 --directory src/
 ```
 
 ## Limitations
