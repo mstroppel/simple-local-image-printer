@@ -411,78 +411,71 @@ function renderPreview() {
   previewPages.appendChild(currentPageData.wrapper);
 
   let currentY = 0; // Y offset within content area
-  let colIdx = 0;   // current column position (0-based)
-  let rowY = currentY; // Y start of current row
-  let rowMaxH = 0;  // max cell height in current row
 
   // We place cells row by row.
   // When a row would exceed the page, break to a new page.
 
-  for (let i = 0; i < images.length; i++) {
-    const entry = images[i];
-    const cH = cellHeight(entry, cW);
+  for (let i = 0; i < images.length; i += cols) {
+    const rowEntries = images.slice(i, i + cols);
+    const rowHeights = rowEntries.map(function (entry) {
+      return cellHeight(entry, cW);
+    });
+    const rowMaxH = Math.max.apply(null, rowHeights);
 
-    // If starting a new row, check if it fits on the current page
-    if (colIdx === 0) {
-      const gap = currentY > 0 ? CELL_GAP_V : 0;
-      if (currentY > 0 && currentY + gap + cH > contentH()) {
-        // New page
-        pageNumber++;
-        currentPageData = createPageDiv(pageNumber);
-        previewPages.appendChild(currentPageData.wrapper);
-        currentY = 0;
+    const gap = currentY > 0 ? CELL_GAP_V : 0;
+    if (currentY > 0 && currentY + gap + rowMaxH > contentH()) {
+      // New page
+      pageNumber++;
+      currentPageData = createPageDiv(pageNumber);
+      previewPages.appendChild(currentPageData.wrapper);
+      currentY = 0;
+    }
+
+    const rowY = currentY + (currentY > 0 ? CELL_GAP_V : 0);
+
+    rowEntries.forEach(function (entry, colIdx) {
+      // Place the cell
+      const x = colIdx * (cW + CELL_GAP_H);
+      const y = rowY;
+
+      const cellDiv = document.createElement('div');
+      cellDiv.className = 'a4-cell';
+      cellDiv.style.left = x + 'px';
+      cellDiv.style.top = y + 'px';
+      cellDiv.style.width = cW + 'px';
+      cellDiv.style.height = rowMaxH + 'px';
+
+      // Title
+      if (entry.title && entry.title.trim()) {
+        const titleEl = document.createElement('div');
+        titleEl.className = 'a4-cell-title';
+        titleEl.textContent = entry.title;
+        cellDiv.appendChild(titleEl);
       }
-      rowY = currentY + (currentY > 0 ? CELL_GAP_V : 0); // recalculate after possible page break
-      rowMaxH = 0;
-    }
 
-    // Place the cell
-    const x = colIdx * (cW + CELL_GAP_H);
-    const y = rowY;
+      // Image
+      const imgSize = imageSize(entry, cW, cols);
 
-    const cellDiv = document.createElement('div');
-    cellDiv.className = 'a4-cell';
-    cellDiv.style.left = x + 'px';
-    cellDiv.style.top = y + 'px';
-    cellDiv.style.width = cW + 'px';
+      const imgEl = document.createElement('img');
+      imgEl.className = 'a4-cell-img';
+      imgEl.src = entry.url;
+      imgEl.alt = entry.title || '';
+      imgEl.style.width = Math.round(imgSize.width) + 'px';
+      imgEl.style.height = Math.round(imgSize.height) + 'px';
+      cellDiv.appendChild(imgEl);
 
-    // Title
-    if (entry.title && entry.title.trim()) {
-      const titleEl = document.createElement('div');
-      titleEl.className = 'a4-cell-title';
-      titleEl.textContent = entry.title;
-      cellDiv.appendChild(titleEl);
-    }
+      // Subtext
+      if (entry.subtext && entry.subtext.trim()) {
+        const subtextEl = document.createElement('div');
+        subtextEl.className = 'a4-cell-subtext';
+        subtextEl.textContent = entry.subtext;
+        cellDiv.appendChild(subtextEl);
+      }
 
-    // Image
-    const imgSize = imageSize(entry, cW, cols);
+      currentPageData.content.appendChild(cellDiv);
+    });
 
-    const imgEl = document.createElement('img');
-    imgEl.className = 'a4-cell-img';
-    imgEl.src = entry.url;
-    imgEl.alt = entry.title || '';
-    imgEl.style.width = Math.round(imgSize.width) + 'px';
-    imgEl.style.height = Math.round(imgSize.height) + 'px';
-    cellDiv.appendChild(imgEl);
-
-    // Subtext
-    if (entry.subtext && entry.subtext.trim()) {
-      const subtextEl = document.createElement('div');
-      subtextEl.className = 'a4-cell-subtext';
-      subtextEl.textContent = entry.subtext;
-      cellDiv.appendChild(subtextEl);
-    }
-
-    currentPageData.content.appendChild(cellDiv);
-
-    if (cH > rowMaxH) rowMaxH = cH;
-    colIdx++;
-
-    if (colIdx >= cols) {
-      // Row complete
-      currentY = rowY + rowMaxH;
-      colIdx = 0;
-    }
+    currentY = rowY + rowMaxH;
   }
 
   // Scale preview to fit panel
