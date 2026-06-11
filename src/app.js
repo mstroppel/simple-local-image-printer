@@ -4,8 +4,9 @@
 // Constants
 // ---------------------------------------------------------------------------
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
-const ACCEPTED_MIME = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
+const ACCEPTED_MIME = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/tiff', 'image/tif'];
+const TIFF_EXTENSIONS = ['.tif', '.tiff'];
 
 // A4 base dimensions (pixels at 96 DPI) — short edge × long edge
 const A4_SHORT = 794;
@@ -151,7 +152,7 @@ function escapeHtml(str) {
 
 function handleFiles(files) {
   Array.from(files).forEach(function (file) {
-    if (!ACCEPTED_MIME.includes(file.type)) {
+    if (!isSupportedImageFile(file)) {
       showError(file.name + ': ' + t('error_unsupported_format'));
       return;
     }
@@ -159,7 +160,36 @@ function handleFiles(files) {
       showError(file.name + ': ' + t('error_file_too_large'));
       return;
     }
-    const url = URL.createObjectURL(file);
+    loadImageFile(file).catch(function () {
+      showError(file.name + ': ' + t('error_image_load'));
+    });
+  });
+  // Reset so same files can be re-added after removal
+  fileInput.value = '';
+}
+
+function isSupportedImageFile(file) {
+  if (ACCEPTED_MIME.includes(file.type)) {
+    return true;
+  }
+
+  return TIFF_EXTENSIONS.some(function (extension) {
+    return file.name.toLowerCase().endsWith(extension);
+  });
+}
+
+function isTiffFile(file) {
+  return file.type === 'image/tiff' ||
+    file.type === 'image/tif' ||
+    TIFF_EXTENSIONS.some(function (extension) {
+      return file.name.toLowerCase().endsWith(extension);
+    });
+}
+
+async function loadImageFile(file) {
+  const url = isTiffFile(file) ? await tiffToDataUrl(file) : URL.createObjectURL(file);
+
+  return new Promise(function (resolve, reject) {
     const img = new Image();
     img.onload = function () {
       const entry = {
@@ -174,11 +204,36 @@ function handleFiles(files) {
       renderCard(entry);
       renderPreview();
       updateDropZoneVisibility();
+      resolve();
+    };
+    img.onerror = function () {
+      if (!isTiffFile(file)) {
+        URL.revokeObjectURL(url);
+      }
+      reject(new Error('Image load failed'));
     };
     img.src = url;
   });
-  // Reset so same files can be re-added after removal
-  fileInput.value = '';
+}
+
+async function tiffToDataUrl(file) {
+  const buffer = await file.arrayBuffer();
+  const ifds = UTIF.decode(buffer);
+  if (!ifds.length) {
+    throw new Error('No TIFF image data found');
+  }
+
+  UTIF.decodeImage(buffer, ifds[0]);
+  const rgba = UTIF.toRGBA8(ifds[0]);
+  const canvas = document.createElement('canvas');
+  canvas.width = ifds[0].width;
+  canvas.height = ifds[0].height;
+  const ctx = canvas.getContext('2d');
+  const imageData = ctx.createImageData(canvas.width, canvas.height);
+  imageData.data.set(rgba);
+  ctx.putImageData(imageData, 0, 0);
+
+  return canvas.toDataURL('image/png');
 }
 
 // ---------------------------------------------------------------------------
