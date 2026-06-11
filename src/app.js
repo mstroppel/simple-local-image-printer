@@ -330,12 +330,7 @@ function cellHeight(entry, cellW) {
   }
 
   // Image
-  const imgContentW = cellW - CELL_PAD * 2;
-  const aspect = entry.naturalH / entry.naturalW;
-  let imgH = imgContentW * aspect;
-  const cap = maxImgH(columns);
-  if (imgH > cap) imgH = cap;
-  h += imgH;
+  h += imageSize(entry, cellW, columns).height;
 
   // Subtext (only if non-empty)
   if (entry.subtext && entry.subtext.trim()) {
@@ -343,6 +338,21 @@ function cellHeight(entry, cellW) {
   }
 
   return h;
+}
+
+function imageSize(entry, cellW, cols) {
+  const maxW = cellW - CELL_PAD * 2;
+  const maxH = maxImgH(cols);
+  const aspect = entry.naturalH / entry.naturalW;
+  let width = maxW;
+  let height = maxW * aspect;
+
+  if (height > maxH) {
+    height = maxH;
+    width = maxH / aspect;
+  }
+
+  return { width: width, height: height };
 }
 
 /**
@@ -445,17 +455,14 @@ function renderPreview() {
     }
 
     // Image
-    const imgContentW = cW - CELL_PAD * 2;
-    const cap = maxImgH(cols);
-    const aspect = entry.naturalH / entry.naturalW;
-    let imgH = imgContentW * aspect;
-    if (imgH > cap) imgH = cap;
+    const imgSize = imageSize(entry, cW, cols);
 
     const imgEl = document.createElement('img');
     imgEl.className = 'a4-cell-img';
     imgEl.src = entry.url;
     imgEl.alt = entry.title || '';
-    imgEl.style.height = Math.round(imgH) + 'px';
+    imgEl.style.width = Math.round(imgSize.width) + 'px';
+    imgEl.style.height = Math.round(imgSize.height) + 'px';
     cellDiv.appendChild(imgEl);
 
     // Subtext
