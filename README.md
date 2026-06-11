@@ -34,9 +34,9 @@ Load images from your device, arrange them in a grid, optionally label each one,
 | ------------- | ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------- |
 | Frontend      | Vanilla JS + HTML + CSS                                                                                            | No build step, zero framework overhead, served as static files |
 | Drag-and-drop | [SortableJS 1.15](https://sortablejs.github.io/Sortable/) (CDN, pinned)                                            | Lightweight, no dependencies                                   |
-| PDF export    | [jsPDF 2.5](https://github.com/parallax/jsPDF) + [html2canvas 1.4](https://html2canvas.hertzen.com/) (CDN, pinned) | Fully client-side, well maintained                             |
+| PDF export    | [jsPDF 4.2](https://github.com/parallax/jsPDF) + [html2canvas 1.4](https://html2canvas.hertzen.com/) (CDN, pinned) | Fully client-side, well maintained                             |
 | JPG export    | html2canvas (same lib) + [JSZip 3.10](https://stuk.github.io/jszip/) (CDN, pinned)                                 | Reuses the PDF rendering pipeline; zip for multi-page output   |
-| Container     | nginx:1.27-alpine (pinned)                                                                                         | Minimal image to serve static files                            |
+| Container     | nginx:1.29-alpine (pinned)                                                                                         | Minimal image to serve static files                            |
 | CI/CD         | GitHub Actions                                                                                                     | PR validation + image publish on merge/tag                     |
 
 **Browser support:** Chrome, Firefox, Edge, Safari (latest 2 versions).
