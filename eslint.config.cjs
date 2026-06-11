@@ -42,6 +42,7 @@ module.exports = [
         Sortable: 'readonly',
         html2canvas: 'readonly',
         JSZip: 'readonly',
+        UTIF: 'readonly',
         // i18n.js globals loaded via <script> tag before app.js
         lang: 'readonly',
         t: 'readonly',

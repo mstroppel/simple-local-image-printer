@@ -66,9 +66,9 @@ npx serve src/
 
 ## Limitations
 
-- Supported image formats: JPEG, PNG, GIF, WebP
-- TIFF and HEIC are not reliably supported in browser export
-- Files larger than 10 MB are rejected
+- Supported image formats: JPEG, PNG, GIF, WebP, TIF/TIFF
+- TIFF files are decoded in the browser via UTIF.js; only the first image/page is used, and uncommon TIFF encodings may fail to load
+- Files larger than 50 MB are rejected
 
 ## License
 
